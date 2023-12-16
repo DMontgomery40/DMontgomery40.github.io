@@ -1,0 +1,52 @@
+/* styles.css */
+
+title {
+  color: red;
+}
+
+.weather-stats-container {
+    max-width: 1200px;
+    margin: 20px auto;  
+    font-family: 'Arial', sans-serif;
+  }
+  
+  .data-section {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);  
+    grid-gap: 35px;
+    align-items: start; 
+    justify-content: center;  
+  }
+  
+  .data-section img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: 8px; 
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);  
+  }
+  
+  .data-section .top-species-header {
+    font-size: 28px;
+    font-weight: bold;
+    color: #0047ab;   
+  }
+  
+  /* Additional rules */ 
+  
+  .table-container {
+    display: block;
+    overflow-x: auto;
+    align-self: start;  
+  }
+  
+  /* Media queries */
+  
+  @media (max-width: 800px) {
+  
+    .weather-stats-container, 
+    .table-container {
+      font-size: 16px;
+    } 
+  
+  }
