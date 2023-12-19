@@ -1,0 +1,113 @@
+{
+    "openapi": "3.0.0",
+    "info": {
+      "title": "BirdWeather API",
+      "version": "1.0.0",
+      "description": "API for accessing BirdWeather station data including detections, soundscapes, and species stats."
+    },
+    "servers": [
+      {
+        "url": "https://app.birdweather.com/api/v1",
+        "description": "Production server"
+      }
+    ],
+    "components": {
+      "schemas": {
+        "apiKey": {
+          "type": "apiKey",
+          "in": "header",
+          "name": "X-API-KEY"
+        }
+      }
+    },
+    "paths": {
+      "/stations/{token}/detections": {
+        "get": {
+          "summary": "Get detections for a station",
+          "description": "Retrieves detection data from a specific BirdWeather station.",
+          "operationId": "getDetections",
+          "parameters": [
+            {
+              "name": "token",
+              "in": "path",
+              "required": true,
+              "description": "Unique identifier for the BirdWeather station.",
+              "schema": {
+                "type": "string"
+              }
+            },
+            {
+              "name": "from",
+              "in": "query",
+              "description": "Start timestamp for detections in ISO8601 format.",
+              "schema": {
+                "type": "string",
+                "format": "date-time"
+              }
+            },
+            {
+              "name": "to",
+              "in": "query",
+              "description": "End timestamp for detections in ISO8601 format.",
+              "schema": {
+                "type": "string",
+                "format": "date-time"
+              }
+            }
+          ],
+          "responses": {
+            "200": {
+              "description": "Successful response with detections data.",
+              "content": {
+                "application/json": {
+                  "schema": {
+                    "type": "object",
+                    "properties": {
+                      "success": {
+                        "type": "boolean"
+                      },
+                      "detections": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "species": {
+                              "type": "string",
+                              "description": "Name of the species detected."
+                            },
+                            "timestamp": {
+                              "type": "string",
+                              "format": "date-time",
+                              "description": "Timestamp of the detection."
+                            },
+                            "confidence": {
+                              "type": "number",
+                              "description": "Confidence level of the detection."
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              } 
+            },
+            "400": {
+              "description": "Bad request due to invalid parameters."
+            },
+            "401": {
+              "description": "Unauthorized access due to missing or invalid authentication token."
+            },
+            "500": {
+              "description": "Internal server error."
+            }
+          },
+          "security": [
+            {
+              "apiKey": []
+            }
+          ]
+        }
+      }
+    }
+  }
