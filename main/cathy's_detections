@@ -1,0 +1,234 @@
+<php?
+// Helper function to make API GET requests
+if (!function_exists('make_api_get_request')) {
+    function make_api_get_request($url) {
+        $response = wp_remote_get($url);
+        if (is_wp_error($response)) {
+            return 'Error: ' . $response->get_error_message();
+        } else {
+            return json_decode(wp_remote_retrieve_body($response), true);
+        }
+    }
+}
+
+
+// Set the default timezone
+date_default_timezone_set('America/Denver');
+
+// Your station token - ensure this is kept secret and secure
+$station_token = 'wdACSFKQf4UHyaLps7vBVaN1';
+
+// The base URL for the API
+$api_base_url = "https://app.birdweather.com/api/v1/stations/$station_token";
+
+// Fetching data from the API
+$today = date('c'); // ISO8601 format
+$a_week_ago = date('c', strtotime("-1 week"));
+
+// Fetch top species
+$top_species_url = "$api_base_url/species?from=2024-05-05&to=2024-05-07";
+$top_species = make_api_get_request($top_species_url);
+
+// Fetch latest detections
+$detections_url = "$api_base_url/detections?limit=100&from=2024-05-05&to=2024-05-07&order=desc";
+$detections = make_api_get_request($detections_url);
+
+// Fetch soundscapes
+// OLD $soundscapes_url = "$api_base_url/soundscapes?limit=20&since=$a_week_ago&order=desc";
+// OLD $soundscapes = make_api_get_request($soundscapes_url);
+
+// List all soundscapes in ascending order (Add this after Line 39)
+$token = 'your_station_auth_token'; // Replace with your actual token
+$soundscapes_url = "$api_base_url/soundscapes?from=2024-05-05&to=2024-05-07&order=asc&limit=100&detections=true";
+$all_soundscapes = make_api_get_request($soundscapes_url);
+
+// Fetch specific soundscape with all details (Add this after the above block)
+$soundscape_id = 12345; // Replace with the actual soundscape ID you want to fetch
+$specific_soundscape_url = "$api_base_url/stations/$token/soundscapes/$soundscape_id?detections=true";
+$specific_soundscape = make_api_get_request($specific_soundscape_url);
+
+// Instructions for filtering by species (commented out for future implementation)
+// To filter soundscapes by species, add the 'species_id' parameter to the API URL
+?>
+echo "<style>
+.weather-stats-container {
+  max-width: 1200px;
+  margin: 20px auto;
+  font-family: 'Arial', sans-serif;
+}
+
+/* Data section */
+.data-section {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-gap: 35px;
+  align-items: start; /* Change to "start" to align content at the top */
+  justify-content: center;
+}
+
+.data-section img {
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+    border-radius: 8px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.data-section .top-species-header {
+    font-size: 28px;
+    font-weight: bold;
+    color: #0047ab; /* Adding a bit of color */
+}
+
+.data-section .common-name {
+    font-size: 130px; /* Making it larger */
+    color: #000; /* Black text */
+}
+
+.data-section .other-details {
+    font-size: 24px; /* Slightly larger for details */
+}
+
+.data-section img:hover {
+    transform: scale(1.1);
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Table container */
+.table-container {
+  display: block;
+  overflow-x: auto;
+  align-self: start; /* Add this line to align the table container at the top */
+}
+
+.table-container table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+    font-size: 24px; /* Larger font for tables */
+}
+
+.table-container th, .table-container td {
+    border: 1px solid #ddd;
+    text-align: left;
+    padding: 8px;
+}
+
+.table-container th {
+    background-color: #f4f4f4;
+}
+
+.table-container tr:hover {
+    background-color: #f4f4f4; /* Hover effect for table rows */
+}
+
+@media (max-width: 800px) {
+    .weather-stats-container, .table-container {
+        font-size: 16px;
+    }
+
+    .data-section {
+        grid-template-columns: 1fr;
+    }
+
+    .data-section .top-species-header,
+    .data-section .common-name,
+    .data-section .other-details {
+        font-size: 18px;
+    }
+
+    .table-container table {
+        font-size: 18px;
+    }
+}
+</style>";
+<?php
+
+
+
+
+
+echo "<div class='weather-stats-container'>";
+echo "<h2>Bird Stats for Larkspur, CO (5/5/2024 - 5/7/2024)</h2>";
+
+
+// Display top species
+echo "<div class='data-section'>";
+echo "<div class='top-species'>";
+echo "<h3>Top Species</h3>";
+echo "<div class='table-container'>";
+echo "<table>";
+echo "<tr>";
+echo "<th>Common Name</th>";
+echo "<th>Total Detections</th>"; // Modified column name
+echo "<th>Image</th>";
+echo "</tr>";
+if (isset($top_species['species']) && is_array($top_species['species'])) {
+    foreach ($top_species['species'] as $species) {
+        echo "<tr>";
+        echo "<td>" . $species['commonName'] . "</td>";
+        echo "<td>" . $species['detections']['total'] . "</td>";
+        echo "<td><img src='" . $species['imageUrl'] . "' alt='Image of " . $species['commonName'] . "'></td>";
+        echo "</tr>";
+    }
+}
+
+echo "</table>";
+echo "</div>"; // Close table-container
+echo "</div>"; // Close top-species
+
+// Display latest detections
+echo "<div class='data-section'>";
+echo "<div class='latest-detections'>";
+echo "<h3>Latest Detections</h3>";
+echo "<div class='table-container'>";
+echo "<table>";
+echo "<tr>";
+echo "<th>Species</th>";
+echo "<th>Detection Time</th>";
+echo "<th>Confidence</th>";
+echo "<th>Listen!</th>"; // New column for play button
+echo "</tr>";
+
+if (isset($detections['detections']) && is_array($detections['detections'])) {
+    foreach ($detections['detections'] as $detection) {
+        if (strtotime($detection['timestamp']) >= strtotime('2024-05-05') && strtotime($detection['timestamp']) <= strtotime('2024-05-07'))
+        echo "<tr>";
+        echo "<td>" . $detection['species']['commonName'] . "</td>";
+        echo "<td>" . date('g:i a, m/d', strtotime($detection['timestamp'])) . "</td>";
+        echo "<td>" . $detection['confidence'] . "</td>";
+    echo "<td>";
+    
+    if (isset($detection['soundscape']['url'])) {
+      echo "<a href='" . $detection['soundscape']['url'] . "' target='_blank'>Play</a>";
+    } else {
+      echo "fixThis";
+    }
+    
+    echo "</td>";
+    
+    echo "</tr>";
+
+  }
+
+}
+
+
+
+
+echo "</table>";
+echo "</div>"; // Close table-container
+echo "</div>"; // Close latest-detections
+
+
+
+
+
+echo "</table>";
+echo "</div>"; // Close table-container
+
+
+echo "</div>"; // Close data-section
+echo "</div>"; // Close weather-stats-container
+?>
+```
